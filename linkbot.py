@@ -1,67 +1,96 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.webdriver import ActionChains
 
 import time
 
-# def home(usuario,senha,tag,message):
-def home(user,password,tag):
+def home(user, password, tag='it recruiter', pages=1):
     chrome_options = Options()
-    #chrome_options.add_argument("--headless")
-    driver = webdriver.Chrome(executable_path="chromedriver", options=chrome_options)
+
+    driver = webdriver.Chrome(options=chrome_options)
+
     driver.get("https://www.linkedin.com/login?fromSignIn=true&trk=guest_homepage-basic_nav-header-signin")
-    user_element = driver.find_element_by_id("username")
-    password_element = driver.find_element_by_id("password")
+
+    user_element = driver.find_element(By.ID, "username")
+    password_element = driver.find_element(By.ID, "password")
+
     user_element.send_keys(user)
     password_element.send_keys(password)
+    
     password_element.send_keys(Keys.RETURN)
+
     time.sleep(5)
-    count = 1
-    while count < 3:
-        search = "https://www.linkedin.com/search/results/people/?keywords={}&origin=GLOBAL_SEARCH_HEADER&page={}".format(tag, count)
-        driver.get(search)
-        search_results = driver.find_element_by_class_name('reusable-search__entity-result-list')
+
+    for idx in range(pages):
+        # idx + 1 because range starts at zero
+        search = f"https://www.linkedin.com/search/results/people/?keywords={tag}&origin=GLOBAL_SEARCH_HEADER&page={idx+1}"
         
-        items = search_results.find_elements_by_class_name('reusable-search__result-container')
-        # Store the ID of the original window
-        original_window = driver.current_window_handle
+        driver.get(search)
+        
+        profile_list_container = driver.find_element(By.CLASS_NAME, 'reusable-search__entity-result-list')
+        
+        profile_list = profile_list_container.find_elements(By.CLASS_NAME, 'reusable-search__result-container')
+        
         driver.maximize_window()
-        for item in items:
-            #print(result.find_element_by_class_name('ember-view').get_attribute("href"))
-            button = item.find_element_by_tag_name('button')
-            button_span = button.find_element_by_tag_name('span')
-            entity_result = item.find_element_by_class_name('entity-result')
-            entity = entity_result.find_element_by_class_name('entity-result__content')
-            profile_config = entity.find_element_by_class_name('app-aware-link')
-            profile_href = profile_config.get_attribute("href")
-            profile_span = profile_config.find_element_by_tag_name('span')
-            profile_name = profile_span.find_element_by_tag_name('span')
-            print("{} - {}".format(profile_name.text, button_span.text))
+
+        for profile in profile_list:
+            # scroll to view better
+            ActionChains(driver)\
+                .scroll_to_element(profile)\
+                .perform()
+             
+            name_container = profile.find_element(By.CLASS_NAME, 'entity-result__title-text')\
+                .find_element(By.TAG_NAME, 'a')
+            
+            link = name_container.get_attribute('href')
+
+            name = name_container.find_element(By.TAG_NAME, 'span')\
+                .find_element(By.TAG_NAME, 'span')\
+                .text
+            
+            button = profile.find_element(By.TAG_NAME, 'button')
+            button_span = button.find_element(By.TAG_NAME, 'span')
+
             if button_span.text == "Connect":
-                # button_span.click()
-                print("Click!")
-            elif button_span.text == "Follow":
-                print("Open a tab and Connect")
-                driver.execute_script("window.open('{}', 'new_Tab')".format(profile_href))
+                print(f"{name} - {link}\n")
+                # button.click()
+            elif button_span.text == "Follow": # open tab and connect
+                driver.execute_script(f"window.open('{link}', 'new_Tab')") # open new tab
+                driver.switch_to.window(driver.window_handles[-1]) # switch to new tab
+
                 time.sleep(6)
-                more_button = driver.find_element((By.LINK_TEXT, 'More'))
-                print(more_button.text)
+
+                more_button = driver.find_element(By.CSS_SELECTOR, ".pvs-profile-actions [aria-label='More actions']")
+                
                 more_button.click()
 
+                time.sleep(1)
+                
+                more_button_parent = more_button.find_element(By.XPATH, '..')
+
+                option_more_button = more_button_parent.find_element(By.CSS_SELECTOR, f"[aria-label='Invite {name} to connect']")
+                text_option_more_button = option_more_button.find_element(By.TAG_NAME, 'span').text
+
+                time.sleep(1)
+
+                if text_option_more_button == "Connect":
+                    print(f"{name} - {link}\n")
+                    # option_more_button.click()
+                
+                driver.close() # close current focused tab
+                driver.switch_to.window(driver.window_handles[0]) # switch back to main tab
             else:
-                continue        
-        count = count + 1
-        # driver.switch_to.window(original_window)
+                continue      
 
+            time.sleep(1) # wait 1s for the next iteration  
 
-user = input("Insira seu email: ")
-password = input("Insira sua password: ")
-tag = input("Insira a skill do profissional: ")
+user = input("Insert your email: ")
+password = input("Insert your password: ")
+tag = input("Insert the tag to search people for: ")
+pages = input("Insert how many pages do you want: ")
+parsed_pages = int(pages)
 # message = input("Envie a message de convite: ")
 
-
-# home(user,password,tag,message)
-home(user,password,tag)
+home(user, password, tag, parsed_pages)
