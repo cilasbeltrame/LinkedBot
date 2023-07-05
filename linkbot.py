@@ -20,6 +20,7 @@ def home(user, password, tag='it recruiter', pages=1):
         else: # then close modal
             close_button = modal.find_element(By.CSS_SELECTOR, "[aria-label='Dismiss']")
             close_button.click()
+            raise Exception('Failed to connect!')
 
 
     chrome_options = Options()
@@ -71,10 +72,14 @@ def home(user, password, tag='it recruiter', pages=1):
             button_span = button.find_element(By.TAG_NAME, 'span')
 
             if button_span.text == "Connect":
-                print(f"{name} - {link}\n")
+                print(f"{name} - {link}")
                 button.click() # open send invite modal
                 time.sleep(SHORT_SLEEP_TIME)
-                handle_send_invite_modal()
+                
+                try:
+                    handle_send_invite_modal() # can raise error
+                except Exception as e:
+                    print(f'{str(e)}\n') # print error message
 
             elif button_span.text == "Follow": # open tab and connect
                 driver.execute_script(f"window.open('{link}', 'new_Tab')") # open new tab
@@ -96,10 +101,14 @@ def home(user, password, tag='it recruiter', pages=1):
                 time.sleep(SHORT_SLEEP_TIME)
 
                 if text_option_more_button == "Connect":
-                    print(f"{name} - {link}\n")
+                    print(f"{name} - {link}")
                     option_more_button.click() # open send invite modal
                     time.sleep(SHORT_SLEEP_TIME)
-                    handle_send_invite_modal()
+                    
+                    try:
+                         handle_send_invite_modal() # can raise error
+                    except Exception as e:
+                        print(f'{str(e)}\n') # print error message
                 
                 driver.close() # close current focused tab
                 driver.switch_to.window(driver.window_handles[0]) # switch back to main tab
