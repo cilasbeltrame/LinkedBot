@@ -6,10 +6,27 @@ from selenium.webdriver import ActionChains
 
 import time
 
+# variables to use with time.sleep()
+SHORT_SLEEP_TIME = 1
+LONGER_SLEEP_TIME = 5
+
 def home(user, password, tag='it recruiter', pages=1):
+    def handle_send_invite_modal():
+        modal = driver.find_element(By.CLASS_NAME, 'artdeco-modal')
+        send_button = modal.find_element(By.CSS_SELECTOR, "[aria-label='Send now']")
+
+        if send_button.is_enabled():
+            send_button.click()
+        else: # then close modal
+            close_button = modal.find_element(By.CSS_SELECTOR, "[aria-label='Dismiss']")
+            close_button.click()
+
+
     chrome_options = Options()
 
     driver = webdriver.Chrome(options=chrome_options)
+
+    driver.implicitly_wait(20) # wait 20s for when browser is still loading content
 
     driver.get("https://www.linkedin.com/login?fromSignIn=true&trk=guest_homepage-basic_nav-header-signin")
 
@@ -21,7 +38,7 @@ def home(user, password, tag='it recruiter', pages=1):
     
     password_element.send_keys(Keys.RETURN)
 
-    time.sleep(5)
+    time.sleep(LONGER_SLEEP_TIME)
 
     for idx in range(pages):
         # idx + 1 because range starts at zero
@@ -55,42 +72,47 @@ def home(user, password, tag='it recruiter', pages=1):
 
             if button_span.text == "Connect":
                 print(f"{name} - {link}\n")
-                # button.click()
+                button.click() # open send invite modal
+                time.sleep(SHORT_SLEEP_TIME)
+                handle_send_invite_modal()
+
             elif button_span.text == "Follow": # open tab and connect
                 driver.execute_script(f"window.open('{link}', 'new_Tab')") # open new tab
                 driver.switch_to.window(driver.window_handles[-1]) # switch to new tab
 
-                time.sleep(6)
+                time.sleep(LONGER_SLEEP_TIME)
 
                 more_button = driver.find_element(By.CSS_SELECTOR, ".pvs-profile-actions [aria-label='More actions']")
                 
                 more_button.click()
 
-                time.sleep(1)
+                time.sleep(SHORT_SLEEP_TIME)
                 
                 more_button_parent = more_button.find_element(By.XPATH, '..')
 
                 option_more_button = more_button_parent.find_element(By.CSS_SELECTOR, f"[aria-label='Invite {name} to connect']")
                 text_option_more_button = option_more_button.find_element(By.TAG_NAME, 'span').text
 
-                time.sleep(1)
+                time.sleep(SHORT_SLEEP_TIME)
 
                 if text_option_more_button == "Connect":
                     print(f"{name} - {link}\n")
-                    # option_more_button.click()
+                    option_more_button.click() # open send invite modal
+                    time.sleep(SHORT_SLEEP_TIME)
+                    handle_send_invite_modal()
                 
                 driver.close() # close current focused tab
                 driver.switch_to.window(driver.window_handles[0]) # switch back to main tab
-            else:
+            else: 
+                # in case of 'Message' button, etc...
                 continue      
 
-            time.sleep(1) # wait 1s for the next iteration  
+            time.sleep(SHORT_SLEEP_TIME) # wait 1s for the next iteration      
 
 user = input("Insert your email: ")
 password = input("Insert your password: ")
 tag = input("Insert the tag to search people for: ")
 pages = input("Insert how many pages do you want: ")
 parsed_pages = int(pages)
-# message = input("Envie a message de convite: ")
 
 home(user, password, tag, parsed_pages)
