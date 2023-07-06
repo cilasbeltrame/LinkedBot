@@ -20,7 +20,7 @@ def home(user, password, tag='it recruiter', pages=1):
         else: # then close modal
             close_button = modal.find_element(By.CSS_SELECTOR, "[aria-label='Dismiss']")
             close_button.click()
-            raise Exception('Failed to connect!')
+            print('Ignoring verifications..')
 
 
     chrome_options = Options()
