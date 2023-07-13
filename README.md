@@ -1,25 +1,16 @@
 # LinkedBot
 
 
-[ATENCAO - script feito afins de estudo e compartilhamento de conhecimento, usar esse script de maneira errada vai contra as politicas do linkedin]
+[ATTENTION - This script is created for study and knowledge sharing purposes. Using this script inappropriately goes against LinkedIn's policies.]
 
-Automatize conexões no linkedin
+Automate connections on LinkedIn
 
+The purpose of this bot is to automate connections based on your desired skill, following these steps:
 
-Bot tem como função automatizar conexões a partir da skill de seu interesse seguindo o fluxo:
+1: Authentication
 
-1: Autenticação 
+2: Search for the desired skill (e.g., Python)
 
-2: Busca pela skill desejada (ex : python)
+3: List all Python professionals found in the as many pages you want.
 
-3: Lista todos os profissionais de python encontrado nas 5 primeiras páginas e salva em um arquivo txt
-
-4: Lê a lista "varrendo" cada perfil e envia solicitação de amizade com a mensagem que quiser
-
-
-**********************************************************************************************
-
-ChromeDriver
-
-Necessario ter junto ao script o chromedriver com a versão do seu google chrome encontrado nessa página
-https://chromedriver.chromium.org/downloads
+4: Loop other them and connect.
